@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using StreamJsonRpc;
 using Stryker.Abstractions.Options;
+using Stryker.Core;
 using Stryker.Core.Initialisation;
 
 namespace Stryker.CLI.Server;
@@ -16,24 +17,27 @@ namespace Stryker.CLI.Server;
 
 public class StrykerServer
 {
-    const int Port = 12345;
+    const int Port = 5000;
 
     private readonly IConfigBuilder _configBuilder;
     private readonly IProjectOrchestrator _projectOrchestrator;
     private readonly IFileSystem _fileSystem;
     private readonly IStrykerInputs _inputs;
+    private readonly IStrykerRunner _stryker;
 
     public StrykerServer(
         IFileSystem fileSystem,
         IStrykerInputs inputs,
         IConfigBuilder configBuilder = null,
-        IProjectOrchestrator? projectOrchestrator = null)
+        IProjectOrchestrator? projectOrchestrator = null,
+        IStrykerRunner? stryker = null)
     {
         // TODO: Use filesystem and inputs.
         _fileSystem = fileSystem;
         _inputs = inputs;
         _configBuilder = configBuilder ?? new ConfigBuilder();
         _projectOrchestrator = projectOrchestrator ?? new ProjectOrchestrator();
+        _stryker = stryker ?? new StrykerRunner();
     }
 
     public async Task RunAsync(CancellationToken stoppingToken)
@@ -69,16 +73,22 @@ public class StrykerServer
         var client = await listener.AcceptTcpClientAsync();
         var stream = client.GetStream();
 
-        var transformer = (string name) => $"{char.ToLower(name[0])}{name[1..]}";
-        var rpcOptions = new JsonRpcProxyOptions
-        {
-            EventNameTransform = transformer,
-            MethodNameTransform = transformer
-        };
-        var rpc = JsonRpc.Attach(stream, new RpcController(_fileSystem, _inputs, _configBuilder, _projectOrchestrator));
+        var jsonFormatter = new SystemTextJsonFormatter();
+        jsonFormatter.JsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, };
+
+        var messageHandler = new HeaderDelimitedMessageHandler(
+            stream,
+            stream,
+            jsonFormatter
+        );
+
+        var rpc = new JsonRpc(messageHandler);
+        rpc.AddLocalRpcTarget(new RpcController(_fileSystem, _inputs, _configBuilder, _projectOrchestrator, _stryker));
+
         var traceListener = new ConsoleTraceListener(true);
 
         rpc.TraceSource.Listeners.Add(traceListener);
+        rpc.StartListening();
 
         // TODO: improve cancellation.
         stoppingToken.Register(() =>

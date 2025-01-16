@@ -7,7 +7,9 @@ using StreamJsonRpc;
 using Stryker.Abstractions.Exceptions;
 using Stryker.Abstractions.Options;
 using Stryker.Abstractions.ProjectComponents;
+using Stryker.CLI.Logging;
 using Stryker.CLI.Server.Models;
+using Stryker.Core;
 using Stryker.Core.Initialisation;
 using Stryker.Core.ProjectComponents;
 using Stryker.Core.ProjectComponents.TestProjects;
@@ -24,23 +26,26 @@ public class RpcController
     private readonly IStrykerInputs _inputs;
     private readonly IConfigBuilder _configBuilder;
     private readonly IProjectOrchestrator _projectOrchestrator;
+    private readonly IStrykerRunner _stryker;
 
     public RpcController(
         IFileSystem fileSystem,
         IStrykerInputs inputs,
         IConfigBuilder configBuilder,
-        IProjectOrchestrator projectOrchestrator)
+        IProjectOrchestrator projectOrchestrator,
+        IStrykerRunner stryker)
     {
         _fileSystem = fileSystem;
         _inputs = inputs;
         _configBuilder = configBuilder;
         _projectOrchestrator = projectOrchestrator;
+        _stryker = stryker;
     }
 
     public ConfigureParams Params { get; private set; }
     public IStrykerOptions Options { get; private set; }
 
-    [JsonRpcMethod(ConfigureParams.CommandName)]
+    [JsonRpcMethod(ConfigureParams.CommandName, UseSingleObjectParameterDeserialization = true)]
     public ConfigureResult Configure(ConfigureParams @params)
     {
         Params = @params;
@@ -57,7 +62,7 @@ public class RpcController
         };
     }
 
-    [JsonRpcMethod(DiscoverParams.CommandName)]
+    [JsonRpcMethod(DiscoverParams.CommandName, UseSingleObjectParameterDeserialization = true)]
     public DiscoverResult Discover(DiscoverParams @params)
     {
         var mutationTestProcesses = _projectOrchestrator.MutateProjects(Options, null).ToList();
@@ -83,6 +88,21 @@ public class RpcController
         {
             Mutants = mutants
         };
+    }
+
+    [JsonRpcMethod(MutatationTestParams.CommandName, UseSingleObjectParameterDeserialization = true)]
+    public MutationTestResult MutationTest(MutatationTestParams @params)
+    {
+        var filePatterns = @params.Files;
+        if (filePatterns != null && filePatterns.Any())
+        {
+            // TODO: Implement mutant filtering
+        }
+
+        new LoggingInitializer().SetupLogOptions(_inputs, _fileSystem);
+        _stryker.RunMutationTest(_inputs, ApplicationLogging.LoggerFactory, _projectOrchestrator);
+
+        return new MutationTestResult();
     }
 
     /// <summary>
