@@ -175,9 +175,10 @@ public class MutationTestProcess : IMutationTestProcess
             return;
         }
 
-        _reporter?.OnMutantTested(mutant);
-        reportedMutants.Add(mutant);
-    }
+            mutant.Parent = Input.SourceProjectInfo.ProjectContents;
+            _reporter?.OnMutantTested(mutant);
+            reportedMutants.Add(mutant);
+        }
 
     private static bool MutantsToTest(IEnumerable<IMutant> mutantsToTest)
     {

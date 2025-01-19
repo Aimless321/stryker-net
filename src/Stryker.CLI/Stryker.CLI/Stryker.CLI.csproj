@@ -6,6 +6,7 @@
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>dotnet-stryker</ToolCommandName>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -42,5 +43,11 @@
     <None Include="..\..\..\LICENSE" Pack="true" PackagePath="" Visible="false" />
     <None Include="..\..\..\README.md" Pack="true" PackagePath="" Visible="false" />
     <None Include="..\..\..\docs\images\stryker-80x80.png" Pack="true" PackagePath="" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\.dockerignore">
+      <Link>.dockerignore</Link>
+    </Content>
   </ItemGroup>
 </Project>

@@ -74,7 +74,11 @@ public class StrykerServer
         var stream = client.GetStream();
 
         var jsonFormatter = new SystemTextJsonFormatter();
-        jsonFormatter.JsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, };
+        jsonFormatter.JsonSerializerOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true,
+        };
 
         var messageHandler = new HeaderDelimitedMessageHandler(
             stream,
@@ -83,7 +87,8 @@ public class StrykerServer
         );
 
         var rpc = new JsonRpc(messageHandler);
-        rpc.AddLocalRpcTarget(new RpcController(_fileSystem, _inputs, _configBuilder, _projectOrchestrator, _stryker));
+        rpc.AddLocalRpcTarget(new RpcController(_fileSystem, _inputs, _configBuilder, _projectOrchestrator,
+            new StrykerRunner(null, new RpcReporterFactory(rpc))));
 
         var traceListener = new ConsoleTraceListener(true);
 

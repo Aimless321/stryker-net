@@ -1,5 +1,6 @@
 using Stryker.Abstractions.TestRunners;
 using Stryker.Abstractions;
+using Stryker.Abstractions.ProjectComponents;
 
 namespace Stryker.Abstractions.Mutants;
 
@@ -14,6 +15,8 @@ public interface IMutant : IReadOnlyMutant
     new ITestGuids AssessingTests { get; set; }
     new bool CountForStats { get; }
     new bool IsStaticValue { get; set; }
+
+    new IReadOnlyProjectComponent Parent { get; set; }
 
     string DisplayName { get; }
     bool MustBeTestedInIsolation { get; set; }

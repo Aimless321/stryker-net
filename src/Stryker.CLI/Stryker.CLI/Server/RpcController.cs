@@ -54,8 +54,6 @@ public class RpcController
         _inputs.OutputPathInput.SuppliedInput ??= Path.Combine("StrykerOutput", DateTime.Now.ToString("yyyy-MM-dd.HH-mm-ss"));
         Directory.CreateDirectory(_inputs.OutputPathInput.SuppliedInput);
 
-        Options = _inputs.ValidateAll();
-
         return new ConfigureResult
         {
             Version = "0"
@@ -96,7 +94,8 @@ public class RpcController
         var filePatterns = @params.Files;
         if (filePatterns != null && filePatterns.Any())
         {
-            // TODO: Implement mutant filtering
+            // TODO: Implement proper mutant filtering
+            _inputs.MutateInput.SuppliedInput = filePatterns.Select(fp => fp.EndsWith("/") ? $"{fp}**/*" : fp).ToList();
         }
 
         new LoggingInitializer().SetupLogOptions(_inputs, _fileSystem);

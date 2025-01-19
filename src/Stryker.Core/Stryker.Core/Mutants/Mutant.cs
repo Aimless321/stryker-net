@@ -1,4 +1,5 @@
 using Stryker.Abstractions.Mutants;
+using Stryker.Abstractions.ProjectComponents;
 using Stryker.Abstractions.TestRunners;
 
 namespace Stryker.Core.Mutants;
@@ -25,6 +26,8 @@ public class Mutant : IMutant
     public bool CountForStats => ResultStatus != MutantStatus.CompileError && ResultStatus != MutantStatus.Ignored;
 
     public bool IsStaticValue { get; set; }
+
+    public IReadOnlyProjectComponent Parent { get; set; }
 
     public bool MustBeTestedInIsolation { get; set; }
 
