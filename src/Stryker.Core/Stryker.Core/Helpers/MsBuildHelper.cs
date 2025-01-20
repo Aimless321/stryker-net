@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
@@ -57,17 +58,27 @@ public class MsBuildHelper
         {
             return _msBuildPath;
         }
-        // See if any MSBuild.exe can be found in visual studio installation folder
-        _msBuildPath = SearchMsBuildVersion("latest") ?? SearchMsBuildVersion("prerelease");
-        if (!string.IsNullOrWhiteSpace(_msBuildPath))
+
+        if (OperatingSystem.IsWindows())
         {
+            // Windows-specific logic
+            _msBuildPath = SearchMsBuildVersion("latest") ?? SearchMsBuildVersion("prerelease");
+            if (!string.IsNullOrWhiteSpace(_msBuildPath))
+            {
+                return _msBuildPath;
+            }
+
+            // Fallback locations
+            _logger.LogInformation("Unable to find msbuild using vswhere, using fallback locations");
+            _msBuildPath = fallbackLocations.Find(s => _fileSystem.File.Exists(s))
+                           ?? throw new FileNotFoundException("MsBuild.exe could not be located. If you have MsBuild.exe available but still see this error, please create an issue.");
+
             return _msBuildPath;
         }
-        // Else, find in default locations
-        _logger.LogInformation("Unable to find msbuild using vswhere, using fallback locations");
 
-        _msBuildPath = fallbackLocations.Find(s => _fileSystem.File.Exists(s)) ?? throw new FileNotFoundException("MsBuild.exe could not be located. If you have MsBuild.exe available but still see this error please create an issue.");
-
+        // Non-Windows environments
+        _logger.LogInformation("Defaulting to dotnet msbuild in a non-Windows environment");
+        _msBuildPath = "msbuild";
         return _msBuildPath;
     }
 

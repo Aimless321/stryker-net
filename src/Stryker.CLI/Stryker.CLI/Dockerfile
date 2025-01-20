@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/sdk:8.0 AS base
 USER $APP_UID
 WORKDIR /app
 EXPOSE 5000
@@ -26,4 +26,4 @@ RUN dotnet publish "Stryker.CLI.csproj" -c $BUILD_CONFIGURATION -o /app/publish 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Stryker.CLI.dll", "start-server"]
+ENTRYPOINT ["dotnet", "/app/Stryker.CLI.dll", "start-server"]
