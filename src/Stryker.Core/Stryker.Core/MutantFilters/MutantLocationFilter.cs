@@ -23,6 +23,11 @@ public class MutantLocationFilter : IMutantFilter
     public IEnumerable<IMutant> FilterMutants(IEnumerable<IMutant> mutants, IReadOnlyFileLeaf file,
         IStrykerOptions options)
     {
+        if (!_includeMutants.Any())
+        {
+            return mutants;
+        }
+
         return mutants.Where(IsMutantIncluded);
 
         bool IsMutantIncluded(IMutant mutant)
