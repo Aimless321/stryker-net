@@ -34,18 +34,21 @@ public class ConfigBuilder : IConfigBuilder
         var isConfigUserProvided = false;
 
         // Check user provided config file option
-        var configFileOption = cmdConfigHandler.GetConfigFileOption(args, app);
-        if (configFileOption != null && configFileOption.HasValue())
+        if (cmdConfigHandler != null && app != null)
         {
-            var userConfigFilePath = Path.Combine(basePath, configFileOption.Value()!);
-            if (!File.Exists(userConfigFilePath))
+            var configFileOption = cmdConfigHandler.GetConfigFileOption(args, app);
+            if (configFileOption != null && configFileOption.HasValue())
             {
-                // Throw if user provided config file does not exist
-                throw new InputException($"Config file not found at {userConfigFilePath}");
-            }
+                var userConfigFilePath = Path.Combine(basePath, configFileOption.Value()!);
+                if (!File.Exists(userConfigFilePath))
+                {
+                    // Throw if user provided config file does not exist
+                    throw new InputException($"Config file not found at {userConfigFilePath}");
+                }
 
-            finalConfigFilePath = userConfigFilePath;
-            isConfigUserProvided = true;
+                finalConfigFilePath = userConfigFilePath;
+                isConfigUserProvided = true;
+            }
         }
 
         // Attempt to read config with default names if user didn't provide one
@@ -68,6 +71,9 @@ public class ConfigBuilder : IConfigBuilder
             FileConfigReader.DeserializeConfig(finalConfigFilePath, inputs);
         }
 
-        cmdConfigHandler.ReadCommandLineConfig(args, app, inputs);
+        if (cmdConfigHandler != null && app != null)
+        {
+            cmdConfigHandler.ReadCommandLineConfig(args, app, inputs);
+        }
     }
 }
