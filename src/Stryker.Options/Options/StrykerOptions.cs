@@ -189,6 +189,8 @@ public class StrykerOptions : IStrykerOptions
     /// </summary>
     public IEnumerable<IFilePattern> Mutate { get; init; } = [FilePattern.Parse("**/*")];
 
+    public IEnumerable<IMutantPattern> Mutants { get; init; } = [];
+
     /// <summary>
     /// Method call mutations that should not be tested. The implementation of the method may still be mutated and tested.
     /// </summary>

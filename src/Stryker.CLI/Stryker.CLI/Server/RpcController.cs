@@ -92,10 +92,10 @@ public class RpcController
     public MutationTestResult MutationTest(MutatationTestParams @params)
     {
         var filePatterns = @params.Files;
-        if (filePatterns != null && filePatterns.Any())
+        var mutantsInputSuppliedInput = filePatterns as string[] ?? filePatterns.ToArray();
+        if (filePatterns != null && mutantsInputSuppliedInput.Any())
         {
-            // TODO: Implement proper mutant filtering
-            _inputs.MutateInput.SuppliedInput = filePatterns.Select(fp => fp.EndsWith("/") ? $"{fp}**/*" : fp).ToList();
+            _inputs.MutantsInput.SuppliedInput = mutantsInputSuppliedInput;
         }
 
         new LoggingInitializer().SetupLogOptions(_inputs, _fileSystem);
